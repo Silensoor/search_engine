@@ -1,0 +1,32 @@
+# example values
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    db_name: search_engine
+    host: jdbc:mysql://localhost:3306
+    initialization-mode: always
+
+    username: rootVit
+    password: rootVit
+    url: ${spring.datasource.host}/${spring.datasource.db_name}?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=yes
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create
+    show-sql: false
+
+indexing-settings:
+  sites:
+    - url: http://cimus.biz
+      name: cimuz
+    - url: http://www.playback.ru
+      name: shop
+  name: SearchBotFix/2.0
+  referer: https://google.com
+  timeout: 15000
+
