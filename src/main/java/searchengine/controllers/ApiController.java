@@ -1,9 +1,9 @@
 package searchengine.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import searchengine.config.SearchCfg;
 import searchengine.dto.Response.FalseResponse;
 import searchengine.dto.Response.IndexResponse;
 import searchengine.dto.Response.SearchResponse;
@@ -30,7 +30,6 @@ public class ApiController {
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
-
         return ResponseEntity.ok(statisticsService.getStatistics());
     }
 
@@ -55,27 +54,12 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> search(@RequestParam(name = "query", required = false, defaultValue = "") String query,
-                                         @RequestParam(name = "site", required = false, defaultValue = "") String site,
-                                         @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                         @RequestParam(name = "limit", required = false, defaultValue = "20") int limit) {
-        if (query.isEmpty()) {
-            return ResponseEntity.ok(new IndexResponse(false, "Задан пустой поисковый запрос"));
-        } else {
-            List<SearchDto> searchData;
-            if (!site.isEmpty()) {
-                if (repositorySite.findByUrl(site) == null) {
-                    return ResponseEntity.ok(new IndexResponse(false, "Указанная страница не найдена"));
-                } else {
-                    searchData = searchService.siteSearch(query, site, offset, limit);
-                }
-            } else {
-                searchData = searchService.allSiteSearch(query, offset, limit);
-            }
-
-            return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData),
-                    HttpStatus.OK);
-        }
+    public ResponseEntity<?> search(SearchCfg site) {
+        List<SearchDto> listSearchDto = site.getSite() == null ?
+                searchService.allSiteSearch(site) :
+                searchService.siteSearch(site);
+        return ResponseEntity.ok(listSearchDto.isEmpty() ?
+                new FalseResponse(false, "Поисковый запрос не найден или введен не верно") :
+                new SearchResponse(true,listSearchDto.size(),listSearchDto));
     }
-
 }

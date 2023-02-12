@@ -5,7 +5,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import searchengine.config.SitesList;
+import searchengine.config.SitesListCfg;
 import searchengine.services.NetworkService;
 
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class NetworkServiceImpl implements NetworkService {
 
-    private final SitesList sitesList;
+    private final SitesListCfg sitesList;
 
     @Override
     public Connection.Response getConnection(String url) throws IOException {

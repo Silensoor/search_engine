@@ -15,9 +15,9 @@ import java.util.List;
 public interface RepositoryIndex extends JpaRepository<EntityIndex, Integer> {
 
 
-    @Query("SELECT i from EntityIndex i WHERE i.lemma IN :lemmas AND i.page IN :pages")
-    List<EntityIndex> findByPagesAndLemmas(@Param("lemmas") List<EntityLemma> lemmaListId,
-                                           @Param("pages") List<EntityPage> pageListId);
+    @Query("select i from EntityIndex i where i.lemma IN :lemmas AND i.page IN :pages")
+    List<EntityIndex> findByPagesAndLemmas(List<EntityLemma> lemmas,
+                                           List<EntityPage> pages);
 
     EntityIndex findByPageAndLemma(EntityPage entityPage, EntityLemma entityLemma);
 }

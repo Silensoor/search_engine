@@ -15,10 +15,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public interface RepositoryPage extends JpaRepository<EntityPage, Integer> {
 
     @Query("select COUNT(*) from EntityPage AS e group by e.site having e.site =:site")
-    Integer findCountBySite(@Param("site") EntitySite entitySite);
+    Integer findCountBySite(EntitySite site);
 
     EntityPage findByPathAndSiteId(String path, Integer siteId);
 
-    @Query("SELECT p from EntityPage as p join EntityIndex as i on p.id = i.page.id where i.lemma.lemma =:lemma and p.site =:site")
-    CopyOnWriteArrayList<EntityPage> findByLemma(@Param("lemma") String lemma, @Param("site") EntitySite entitySite);
+    @Query("select p from EntityPage as p " +
+            "join EntityIndex as i on p.id = i.page.id " +
+            "where i.lemma.lemma =:lemma and p.site =:site")
+    CopyOnWriteArrayList<EntityPage> findByLemma(String lemma, EntitySite site);
 }

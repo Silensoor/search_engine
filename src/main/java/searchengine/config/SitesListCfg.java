@@ -11,10 +11,10 @@ import java.util.List;
 @Setter
 @Component
 @ConfigurationProperties(prefix = "indexing-settings")
-public class SitesList {
+public class SitesListCfg {
     private String name;
     private String referer;
     private Integer timeout;
-    private List<Site> sites;
+    private List<SiteCfg> sites;
     private String contentType;
 }

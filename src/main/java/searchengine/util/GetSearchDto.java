@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import searchengine.dto.statistics.SearchDto;
 import searchengine.model.EntityPage;
 import searchengine.util.morphology.Morphology;
+
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -91,13 +92,14 @@ public class GetSearchDto implements Callable {
         }
         return text;
     }
-    private String getTitle(String body){
+
+    private String getTitle(String body) {
         String title = ClearHtmlCode.clear(entry.getKey().getContent(), "title");
-       if(title.length()<2){
-           int indexOfFirsWord = body.indexOf(" ");
-           int indexOfTwoWord = body.indexOf(" ", indexOfFirsWord+1);
-           return body.substring(0,indexOfTwoWord);
-       }
-       return title;
+        if (title.length() < 2) {
+            int indexOfFirsWord = body.indexOf(" ");
+            int indexOfTwoWord = body.indexOf(" ", indexOfFirsWord + 1);
+            return body.substring(0, indexOfTwoWord);
+        }
+        return title;
     }
 }

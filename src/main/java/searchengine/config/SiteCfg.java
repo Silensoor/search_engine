@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Site {
+public class SiteCfg {
     private String url;
     private String name;
 }

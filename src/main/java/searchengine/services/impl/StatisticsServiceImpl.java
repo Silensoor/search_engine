@@ -2,8 +2,8 @@ package searchengine.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
-import searchengine.config.SitesList;
+import searchengine.config.SiteCfg;
+import searchengine.config.SitesListCfg;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
@@ -25,17 +25,17 @@ import java.util.List;
 public class StatisticsServiceImpl implements StatisticsService {
     private final RepositorySite repositorySite;
     private final RepositoryPage repositoryPage;
-    private final SitesList sites;
+    private final SitesListCfg sites;
     private final RepositoryLemma repositoryLemma;
 
     @Override
     public StatisticsResponse getStatistics() {
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
-        List<Site> sitesList = sites.getSites();
+        List<SiteCfg> sitesList = sites.getSites();
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
         total.setIndexing(false);
-        for (Site site : sitesList) {
+        for (SiteCfg site : sitesList) {
             Status statusSiteByUrl = repositorySite.findByUrl(site.getUrl());
             if (statusSiteByUrl != null && statusSiteByUrl.equals(Status.INDEXING)) {
                 total.setIndexing(true);

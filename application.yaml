@@ -4,10 +4,8 @@ server:
 
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
     db_name: search_engine
     host: jdbc:mysql://localhost:3306
-    initialization-mode: always
 
     username: rootVit
     password: rootVit
@@ -24,10 +22,13 @@ indexing-settings:
   sites:
     - url: http://cimus.biz
       name: cimuz
-    - url: http://www.playback.ru
+    - url: http://playback.ru
       name: shop
   name: SearchBotFix/2.0
   referer: https://google.com
   timeout: 15000
   contentType: text/html; charset=utf-8
 
+search-settings:
+  limit: 20
+  offset: 0

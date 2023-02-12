@@ -12,10 +12,6 @@ public class SearchResponse {
     private int count;
     private List<SearchDto> data;
 
-    public SearchResponse(boolean result){
-        this.result = result;
-    }
-
     public SearchResponse(boolean result, int count, List<SearchDto> data) {
         this.result = result;
         this.count = count;

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import searchengine.config.SearchCfg;
 import searchengine.dto.statistics.SearchDto;
 import searchengine.model.EntityIndex;
 import searchengine.model.EntityLemma;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SearchServiceImpl implements SearchService {
     private final Morphology morphology;
+
     private final RepositoryLemma lemmaRepository;
     private final RepositoryPage pageRepository;
     private final RepositoryIndex indexRepository;
@@ -34,10 +36,10 @@ public class SearchServiceImpl implements SearchService {
 
     @SneakyThrows
     @Override
-    public List<SearchDto> allSiteSearch(String searchText, int offset, int limit) {
+    public List<SearchDto> allSiteSearch(SearchCfg searchCfg) {
         List<EntitySite> entitySites = siteRepository.findAll();
         HashMap<EntityPage, Float> entityPageFloatHashMap = new HashMap<>();
-        Set<String> lemmaSet = getLemmaSet(searchText);
+        Set<String> lemmaSet = getLemmaSet(searchCfg.getQuery());
         for (EntitySite entitySite : entitySites) {
             List<EntityLemma> foundLemmaList = getLemmaListFromSite(lemmaSet, entitySite);
             if (foundLemmaList.isEmpty()) {
@@ -45,28 +47,28 @@ public class SearchServiceImpl implements SearchService {
                 continue;
             }
             log.info("Поисковый запрос сайта " + entitySite.getName() + " обработан. Ответ получен.");
-            entityPageFloatHashMap.putAll(getPageList(foundLemmaList, entitySite, limit));
+            entityPageFloatHashMap.putAll(getPageList(foundLemmaList, entitySite, searchCfg.getLimit()));
         }
         if (entityPageFloatHashMap.isEmpty()) {
             return new ArrayList<>();
         }
-        HashMap<EntityPage, Float> resultMap = getResultMap(entityPageFloatHashMap, limit);
+        HashMap<EntityPage, Float> resultMap = getResultMap(entityPageFloatHashMap, searchCfg.getLimit());
         return getSearchDto(resultMap, lemmaSet);
     }
 
     @SneakyThrows
     @Override
-    public List<SearchDto> siteSearch(String searchText, String url, int offset, int limit) {
-        EntitySite site = siteRepository.findEntitySiteByUrl(url);
-        Set<String> lemmaSet = getLemmaSet(searchText);
+    public List<SearchDto> siteSearch(SearchCfg searchCfg) {
+        EntitySite site = siteRepository.findEntitySiteByUrl(searchCfg.getSite());
+        Set<String> lemmaSet = getLemmaSet(searchCfg.getQuery());
         List<EntityLemma> foundLemmaList = getLemmaListFromSite(lemmaSet, site);
         if (foundLemmaList.isEmpty()) {
             log.debug("Поисковый запрос обработан. Ответ пустой.");
             return new ArrayList<>();
         }
         log.info("Поисковый запрос обработан. Ответ получен.");
-        HashMap<EntityPage, Float> pageFloatHashMap = getPageList(foundLemmaList, site, limit);
-        HashMap<EntityPage, Float> resultMap = getResultMap(pageFloatHashMap, limit);
+        HashMap<EntityPage, Float> pageFloatHashMap = getPageList(foundLemmaList, site, searchCfg.getLimit());
+        HashMap<EntityPage, Float> resultMap = getResultMap(pageFloatHashMap, searchCfg.getLimit());
         if (pageFloatHashMap.isEmpty()) {
             return new ArrayList<>();
         }

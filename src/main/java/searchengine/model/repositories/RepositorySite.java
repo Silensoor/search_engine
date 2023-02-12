@@ -12,12 +12,12 @@ import searchengine.model.Status;
 public interface RepositorySite extends JpaRepository<EntitySite, Integer> {
 
     @Query("select e.status from EntitySite as e where e.url =:url")
-    Status findByUrl(@Param("url") String url);
+    Status findByUrl(String url);
 
     EntitySite findEntitySiteByUrl(String url);
 
 
     @Query("select e.last_error  from EntitySite as e where e.url=:url")
-    String findErrorByUrl(@Param("url") String url);
+    String findErrorByUrl(String url);
 }
 

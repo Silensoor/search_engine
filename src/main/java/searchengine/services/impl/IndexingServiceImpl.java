@@ -7,8 +7,8 @@ import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
-import searchengine.config.SitesList;
+import searchengine.config.SiteCfg;
+import searchengine.config.SitesListCfg;
 import searchengine.dto.Response.IndexResponse;
 import searchengine.model.EntityPage;
 import searchengine.model.EntitySite;
@@ -34,15 +34,13 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
 
-    private final SitesList sitesList;
-
+    private final SitesListCfg sitesList;
     private final RepositoryLemma repositoryLemma;
     private final RepositoryIndex repositoryIndex;
-
     private final RepositorySite repositorySite;
-
     private final RepositoryPage repositoryPage;
     private final NetworkService network;
+    private final Pattern pattern = Pattern.compile("^(https?://)?([\\w-]{1,32}\\.[\\w-]{1,32})[^\\s@]*$");
 
 
     @SneakyThrows
@@ -52,21 +50,21 @@ public class IndexingServiceImpl implements IndexingService {
         if (isIndexing()) {
             return new IndexResponse(false, "Индексация уже запущена");
         }
-        Thread thread = new Thread(()->{
-                log.info("Индексация запущена.");
-        repositoryIndex.deleteAll();
-        repositoryLemma.deleteAll();
-        repositoryPage.deleteAll();
-        repositorySite.deleteAll();
+        Thread thread = new Thread(() -> {
+            log.info("Индексация запущена.");
+            repositoryIndex.deleteAll();
+            repositoryLemma.deleteAll();
+            repositoryPage.deleteAll();
+            repositorySite.deleteAll();
 
-        for (Site site : sitesList.getSites()) {
-            EntitySite entitySite = getEntitySite(site, Status.INDEXING);
-            repositorySite.saveAndFlush(entitySite);
-            StartExecutor startExecutor = new StartExecutor(entitySite, repositoryPage, network, repositorySite,
-                    repositoryLemma, repositoryIndex);
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            executorService.submit(startExecutor);
-        }
+            for (SiteCfg site : sitesList.getSites()) {
+                EntitySite entitySite = getEntitySite(site, Status.INDEXING);
+                repositorySite.saveAndFlush(entitySite);
+                StartExecutor startExecutor = new StartExecutor(entitySite, repositoryPage, network, repositorySite,
+                        repositoryLemma, repositoryIndex);
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                executorService.submit(startExecutor);
+            }
         });
         thread.start();
 
@@ -82,7 +80,6 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public IndexResponse indexPage(String url) {
-        Pattern pattern = Pattern.compile("^(https?://)?([\\w-]{1,32}\\.[\\w-]{1,32})[^\\s@]*$");
         try {
             if (url.isEmpty() || !pattern.matcher(url).find()) {
                 return new IndexResponse(false, "Вы ввели неверный url");
@@ -92,7 +89,7 @@ public class IndexingServiceImpl implements IndexingService {
             Document document = connection.parse();
             if (connection.statusCode() == HttpStatus.OK.value()) {
                 StartLemmaFind.stop = false;
-                for (Site site : sitesList.getSites()) {
+                for (SiteCfg site : sitesList.getSites()) {
                     EntitySite entitySite = repositorySite.findEntitySiteByUrl(site.getUrl());
                     if (url.contains(site.getUrl()) && entitySite == null) {
                         saveEntitySiteAndPage(site, url, document);
@@ -119,7 +116,7 @@ public class IndexingServiceImpl implements IndexingService {
     }
 
 
-    private EntitySite getEntitySite(Site site, Status status) {
+    private EntitySite getEntitySite(SiteCfg site, Status status) {
         EntitySite entitySite = new EntitySite();
         entitySite.setStatus(status);
         entitySite.setName(site.getName());
@@ -129,7 +126,7 @@ public class IndexingServiceImpl implements IndexingService {
         return entitySite;
     }
 
-    private String getPath(String url, Site site) {
+    private String getPath(String url, SiteCfg site) {
         return url.substring(site.getUrl().length());
 
     }
@@ -153,7 +150,7 @@ public class IndexingServiceImpl implements IndexingService {
         return false;
     }
 
-    private void saveEntitySiteAndPage(Site site, String url, Document document) {
+    private void saveEntitySiteAndPage(SiteCfg site, String url, Document document) {
         EntitySite entitySite = getEntitySite(site, Status.INDEXED);
         repositorySite.saveAndFlush(entitySite);
         EntityPage entityPage = getEntityPage(document, getPath(url, site), entitySite);
