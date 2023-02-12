@@ -16,6 +16,7 @@ public interface RepositorySite extends JpaRepository<EntitySite, Integer> {
 
     EntitySite findEntitySiteByUrl(String url);
 
+
     @Query("select e.last_error  from EntitySite as e where e.url=:url")
     String findErrorByUrl(@Param("url") String url);
 }

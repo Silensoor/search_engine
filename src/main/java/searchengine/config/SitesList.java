@@ -16,4 +16,5 @@ public class SitesList {
     private String referer;
     private Integer timeout;
     private List<Site> sites;
+    private String contentType;
 }

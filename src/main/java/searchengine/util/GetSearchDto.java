@@ -1,12 +1,9 @@
 package searchengine.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import searchengine.dto.statistics.SearchDto;
 import searchengine.model.EntityPage;
 import searchengine.util.morphology.Morphology;
-
-import java.lang.constant.Constable;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -28,13 +25,13 @@ public class GetSearchDto implements Callable {
         searchDto.setRelevance(entry.getValue());
         searchDto.setUri(entry.getKey().getPath());
         searchDto.setSite(entry.getKey().getSite().getUrl());
-        String title = Jsoup.parse(entry.getKey().getContent()).title();
-        searchDto.setTitle(title);
         searchDto.setSiteName(entry.getKey().getSite().getName());
         StringBuilder stringBuilder = new StringBuilder();
-        Constable title1 = ClearHtmlCode.clear(entry.getKey().getContent(), "title");
-        Constable body = ClearHtmlCode.clear(entry.getKey().getContent(), "body");
-        stringBuilder.append(title1).append(" ").append(body);
+
+        String body = ClearHtmlCode.clear(entry.getKey().getContent(), "body");
+        String title = getTitle(body);
+        searchDto.setTitle(title);
+        stringBuilder.append(title).append(" ").append(body);
         searchDto.setSnippet(getSnippet(stringBuilder.toString(), entityLemmas));
         return searchDto;
     }
@@ -93,5 +90,14 @@ public class GetSearchDto implements Callable {
             log.error(e.getMessage());
         }
         return text;
+    }
+    private String getTitle(String body){
+        String title = ClearHtmlCode.clear(entry.getKey().getContent(), "title");
+       if(title.length()<2){
+           int indexOfFirsWord = body.indexOf(" ");
+           int indexOfTwoWord = body.indexOf(" ", indexOfFirsWord+1);
+           return body.substring(0,indexOfTwoWord);
+       }
+       return title;
     }
 }

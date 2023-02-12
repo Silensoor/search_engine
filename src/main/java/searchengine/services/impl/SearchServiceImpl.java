@@ -21,9 +21,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SearchServiceImpl implements SearchService {
     private final Morphology morphology;
     private final RepositoryLemma lemmaRepository;
@@ -46,6 +46,9 @@ public class SearchServiceImpl implements SearchService {
             }
             log.info("Поисковый запрос сайта " + entitySite.getName() + " обработан. Ответ получен.");
             entityPageFloatHashMap.putAll(getPageList(foundLemmaList, entitySite, limit));
+        }
+        if (entityPageFloatHashMap.isEmpty()) {
+            return new ArrayList<>();
         }
         HashMap<EntityPage, Float> resultMap = getResultMap(entityPageFloatHashMap, limit);
         return getSearchDto(resultMap, lemmaSet);

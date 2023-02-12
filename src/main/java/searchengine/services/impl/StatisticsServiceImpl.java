@@ -10,7 +10,9 @@ import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.EntitySite;
 import searchengine.model.Status;
-import searchengine.services.AllServiceForRepository;
+import searchengine.model.repositories.RepositoryLemma;
+import searchengine.model.repositories.RepositoryPage;
+import searchengine.model.repositories.RepositorySite;
 import searchengine.services.StatisticsService;
 
 import java.lang.constant.Constable;
@@ -21,9 +23,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-    private final AllServiceForRepository allService;
-
+    private final RepositorySite repositorySite;
+    private final RepositoryPage repositoryPage;
     private final SitesList sites;
+    private final RepositoryLemma repositoryLemma;
 
     @Override
     public StatisticsResponse getStatistics() {
@@ -33,21 +36,21 @@ public class StatisticsServiceImpl implements StatisticsService {
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
         total.setIndexing(false);
         for (Site site : sitesList) {
-            Status statusSiteByUrl = allService.findStatusSiteByUrl(site.getUrl());
+            Status statusSiteByUrl = repositorySite.findByUrl(site.getUrl());
             if (statusSiteByUrl != null && statusSiteByUrl.equals(Status.INDEXING)) {
                 total.setIndexing(true);
             }
             DetailedStatisticsItem item = new DetailedStatisticsItem();
             item.setName(site.getName());
             item.setUrl(site.getUrl());
-            EntitySite entitySite = allService.findEntitySiteByUrl(site.getUrl());
-            int pages = allService.findCountPageBySite(entitySite) == null ? 0 : allService.findCountPageBySite(entitySite);
+            EntitySite entitySite = repositorySite.findEntitySiteByUrl(site.getUrl());
+            int pages = repositoryPage.findCountBySite(entitySite) == null ? 0 : repositoryPage.findCountBySite(entitySite);
             item.setPages(pages);
-            int lemmas = allService.countLemmasBySite(entitySite);
+            int lemmas = repositoryLemma.countBySite(entitySite);
             item.setLemmas(lemmas);
 
             item.setStatus(statusSiteByUrl == null ? "" : statusSiteByUrl.toString());
-            Constable errorSiteByUrl = allService.findErrorSiteByUrl(site.getUrl());
+            Constable errorSiteByUrl = repositorySite.findErrorByUrl(site.getUrl());
             item.setError(errorSiteByUrl == null ? "" : errorSiteByUrl.toString());
             item.setStatusTime(new Date().getTime());
             total.setPages(total.getPages() + pages);

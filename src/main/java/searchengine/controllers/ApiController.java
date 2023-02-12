@@ -55,19 +55,17 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> search(@RequestParam(name = "query", required = false, defaultValue = "") String query,
+    public ResponseEntity<?> search(@RequestParam(name = "query", required = false, defaultValue = "") String query,
                                          @RequestParam(name = "site", required = false, defaultValue = "") String site,
                                          @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                          @RequestParam(name = "limit", required = false, defaultValue = "20") int limit) {
         if (query.isEmpty()) {
-            return new ResponseEntity<>(new FalseResponse(false, "Задан пустой поисковый запрос"),
-                    HttpStatus.BAD_REQUEST);
+            return ResponseEntity.ok(new IndexResponse(false, "Задан пустой поисковый запрос"));
         } else {
             List<SearchDto> searchData;
             if (!site.isEmpty()) {
                 if (repositorySite.findByUrl(site) == null) {
-                    return new ResponseEntity<>(new FalseResponse(false, "Указанная страница не найдена"),
-                            HttpStatus.BAD_REQUEST);
+                    return ResponseEntity.ok(new IndexResponse(false, "Указанная страница не найдена"));
                 } else {
                     searchData = searchService.siteSearch(query, site, offset, limit);
                 }

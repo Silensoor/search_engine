@@ -17,7 +17,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: false
 
 indexing-settings:
@@ -29,4 +29,5 @@ indexing-settings:
   name: SearchBotFix/2.0
   referer: https://google.com
   timeout: 15000
+  contentType: text/html; charset=utf-8
 

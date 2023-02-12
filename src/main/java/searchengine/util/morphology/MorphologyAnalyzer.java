@@ -62,7 +62,8 @@ public class MorphologyAnalyzer implements Morphology {
         String[] elements = content.toLowerCase(Locale.ROOT).split("\\p{Punct}|\\s");
         int index = 0;
         for (String el : elements) {
-            List<String> lemmas = getLemma(el);
+            String s = el.replaceAll("\\p{Punct}|[0-9]|@|©|◄|»|«|—|-|№|…", "");
+            List<String> lemmas = getLemma(s);
             for (String lem : lemmas) {
                 if (lem.equals(lemma)) {
                     lemmaIndexList.add(index);

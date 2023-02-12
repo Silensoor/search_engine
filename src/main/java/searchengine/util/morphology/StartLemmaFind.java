@@ -5,7 +5,8 @@ import searchengine.model.EntityIndex;
 import searchengine.model.EntityLemma;
 import searchengine.model.EntityPage;
 import searchengine.model.EntitySite;
-import searchengine.services.AllServiceForRepository;
+import searchengine.model.repositories.RepositoryIndex;
+import searchengine.model.repositories.RepositoryLemma;
 import searchengine.util.ClearHtmlCode;
 
 import java.io.IOException;
@@ -14,17 +15,21 @@ import java.util.*;
 @Slf4j
 
 public class StartLemmaFind implements Runnable {
-    private static AllServiceForRepository allService;
+
     private final EntitySite entitySite;
-    private static final Morphology morphology = new MorphologyAnalyzer();
-    public volatile static boolean stop = false;
+    private final Morphology morphology = new MorphologyAnalyzer();
+    public static volatile boolean stop = false;
     private final EntityPage entityPage;
+    private final RepositoryLemma repositoryLemma;
+    private final RepositoryIndex repositoryIndex;
 
 
-    public StartLemmaFind(EntitySite entitySite, AllServiceForRepository allService, EntityPage entityPage) {
-
+    public StartLemmaFind(EntitySite entitySite, EntityPage entityPage, RepositoryIndex repositoryIndex,
+                          RepositoryLemma repositoryLemma) {
+        this.repositoryLemma = repositoryLemma;
+        this.repositoryIndex = repositoryIndex;
         this.entitySite = entitySite;
-        StartLemmaFind.allService = allService;
+
         stop = false;
         this.entityPage = entityPage;
 
@@ -39,6 +44,7 @@ public class StartLemmaFind implements Runnable {
         }
 
     }
+
     private void startLemmaFinder(EntityPage entityPage) throws IOException {
         String title = ClearHtmlCode.clear(entityPage.getContent(), "title");
         String body = ClearHtmlCode.clear(entityPage.getContent(), "body");
@@ -57,21 +63,21 @@ public class StartLemmaFind implements Runnable {
     }
 
     private void saveLemmaAndIndex(String lemma, EntityPage entityPage, Integer count) {
-        EntityLemma lemma1 = allService.findLemmaAndSite(lemma, entitySite);
+        EntityLemma lemma1 = repositoryLemma.findByLemmaAndSite(lemma, entitySite);
         if (lemma1 == null) {
             EntityLemma entityLemma = new EntityLemma();
             entityLemma.setSite(entitySite);
             entityLemma.setLemma(lemma);
             entityLemma.setFrequency(1);
-            lemma1 = allService.saveLemma(entityLemma);
+            lemma1 = repositoryLemma.saveAndFlush(entityLemma);
         } else {
             lemma1.setFrequency(lemma1.getFrequency() + 1);
-            allService.saveLemma(lemma1);
+            repositoryLemma.saveAndFlush(lemma1);
         }
         EntityIndex entityIndex = new EntityIndex();
         entityIndex.setPage(entityPage);
         entityIndex.setRank(count);
         entityIndex.setLemma(lemma1);
-        allService.saveIndex(entityIndex);
+        repositoryIndex.saveAndFlush(entityIndex);
     }
 }

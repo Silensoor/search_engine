@@ -1,11 +1,13 @@
 package searchengine.util;
 
 import lombok.extern.slf4j.Slf4j;
-import searchengine.config.Site;
 import searchengine.model.EntitySite;
 import searchengine.model.Status;
+import searchengine.model.repositories.RepositoryIndex;
+import searchengine.model.repositories.RepositoryLemma;
+import searchengine.model.repositories.RepositoryPage;
+import searchengine.model.repositories.RepositorySite;
 import searchengine.services.NetworkService;
-import searchengine.services.AllServiceForRepository;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,18 +17,24 @@ import java.util.concurrent.*;
 @Slf4j
 public class StartExecutor implements Runnable {
     private final EntitySite entitySite;
-    private final Site site;
-    private static AllServiceForRepository allService;
+    private final RepositoryPage repositoryPage;
     private static ForkJoinPool fjp;
-    private static NetworkService network;
+    private final NetworkService network;
+    private final RepositorySite repositorySite;
+    private final RepositoryIndex repositoryIndex;
+    private final RepositoryLemma repositoryLemma;
 
 
-    public StartExecutor(EntitySite entitySite, Site site, AllServiceForRepository pageService, NetworkService network) {
+    public StartExecutor(EntitySite entitySite, RepositoryPage repositoryPage, NetworkService network,
+                         RepositorySite repositorySite, RepositoryLemma repositoryLemma, RepositoryIndex repositoryIndex) {
         this.entitySite = entitySite;
-        this.site = site;
-        StartExecutor.allService = pageService;
-        StartExecutor.network = network;
+        this.repositoryPage = repositoryPage;
+        this.network = network;
+        this.repositorySite = repositorySite;
+        this.repositoryLemma = repositoryLemma;
+        this.repositoryIndex = repositoryIndex;
         fjp = new ForkJoinPool();
+
 
     }
 
@@ -34,17 +42,17 @@ public class StartExecutor implements Runnable {
     public void run() {
         try {
             long startTime = System.currentTimeMillis();
-            ExecutorHtml executorHtml = new ExecutorHtml(entitySite, site.getUrl() + "/", allService, network);
+            ExecutorHtml executorHtml = new ExecutorHtml(entitySite, entitySite.getUrl() + "/", repositoryPage,
+                                                         network, repositorySite, repositoryIndex, repositoryLemma);
             fjp.invoke(executorHtml);
 
             if (!fjp.isShutdown()) {
                 entitySite.setStatus_time(new Date());
                 entitySite.setStatus(Status.INDEXED);
-                allService.saveSite(entitySite);
+                repositorySite.saveAndFlush(entitySite);
                 log.info("Индексация сайта " + entitySite.getName() + " завершена, за время: " +
                         (System.currentTimeMillis() - startTime));
             }
-
 
 
         } catch (MalformedURLException exception1) {

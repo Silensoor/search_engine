@@ -18,7 +18,6 @@ import searchengine.model.repositories.RepositoryLemma;
 import searchengine.model.repositories.RepositoryPage;
 import searchengine.model.repositories.RepositorySite;
 import searchengine.util.morphology.StartLemmaFind;
-import searchengine.services.AllServiceForRepository;
 import searchengine.services.IndexingService;
 import searchengine.services.NetworkService;
 import searchengine.util.ExecutorHtml;
@@ -30,13 +29,13 @@ import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class IndexingServiceImpl implements IndexingService {
 
     private final SitesList sitesList;
-    private final AllServiceForRepository allService;
+
     private final RepositoryLemma repositoryLemma;
     private final RepositoryIndex repositoryIndex;
 
@@ -50,11 +49,11 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public IndexResponse startIndexing() {
         ExecutorHtml.stop = false;
-        ExecutorHtml.clearSET_ABSURL();
         if (isIndexing()) {
             return new IndexResponse(false, "Индексация уже запущена");
         }
-        log.info("Индексация запущена.");
+        Thread thread = new Thread(()->{
+                log.info("Индексация запущена.");
         repositoryIndex.deleteAll();
         repositoryLemma.deleteAll();
         repositoryPage.deleteAll();
@@ -62,11 +61,15 @@ public class IndexingServiceImpl implements IndexingService {
 
         for (Site site : sitesList.getSites()) {
             EntitySite entitySite = getEntitySite(site, Status.INDEXING);
-            allService.saveSite(entitySite);
-            StartExecutor startExecutor = new StartExecutor(entitySite, site, allService, network);
+            repositorySite.saveAndFlush(entitySite);
+            StartExecutor startExecutor = new StartExecutor(entitySite, repositoryPage, network, repositorySite,
+                    repositoryLemma, repositoryIndex);
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             executorService.submit(startExecutor);
         }
+        });
+        thread.start();
+
         return new IndexResponse(true, "");
     }
 
@@ -88,31 +91,22 @@ public class IndexingServiceImpl implements IndexingService {
             Connection.Response connection = network.getConnection(url);
             Document document = connection.parse();
             if (connection.statusCode() == HttpStatus.OK.value()) {
-                StartLemmaFind.stop=false;
+                StartLemmaFind.stop = false;
                 for (Site site : sitesList.getSites()) {
                     EntitySite entitySite = repositorySite.findEntitySiteByUrl(site.getUrl());
-
                     if (url.contains(site.getUrl()) && entitySite == null) {
-                        EntitySite entitySite1 = getEntitySite(site, Status.INDEXED);
-                        repositorySite.saveAndFlush(entitySite1);
-                        EntityPage entityPage1 = getEntityPage(document, getPath(url, site), entitySite1);
-                        repositoryPage.saveAndFlush(entityPage1);
-                        ExecutorService executorService = Executors.newSingleThreadExecutor();
-                        executorService.submit(new StartLemmaFind(entitySite1, allService, entityPage1));
-
+                        saveEntitySiteAndPage(site, url, document);
                     } else if (url.contains(site.getUrl()) && entitySite != null) {
                         EntityPage entityPage = repositoryPage.findByPathAndSiteId(getPath(url, site), entitySite.getId());
                         if (entityPage != null) {
-                            ExecutorService executorService = Executors.newSingleThreadExecutor();
-                            executorService.submit(new StartLemmaFind(entitySite, allService, entityPage));
+                            startLemmaFind(entitySite, entityPage);
                         } else {
                             EntityPage entityPage2 = getEntityPage(document, getPath(url, site), entitySite);
                             repositoryPage.saveAndFlush(entityPage2);
-                            ExecutorService executorService = Executors.newSingleThreadExecutor();
-                            executorService.submit(new StartLemmaFind(entitySite, allService, entityPage2));
+                            startLemmaFind(entitySite, entityPage2);
                         }
                     }
-                    log.info("Страница "+url+" проиндексирована.");
+                    log.info("Страница " + url + " проиндексирована.");
                     return new IndexResponse(true);
 
                 }
@@ -157,5 +151,18 @@ public class IndexingServiceImpl implements IndexingService {
             }
         }
         return false;
+    }
+
+    private void saveEntitySiteAndPage(Site site, String url, Document document) {
+        EntitySite entitySite = getEntitySite(site, Status.INDEXED);
+        repositorySite.saveAndFlush(entitySite);
+        EntityPage entityPage = getEntityPage(document, getPath(url, site), entitySite);
+        repositoryPage.saveAndFlush(entityPage);
+        startLemmaFind(entitySite, entityPage);
+    }
+
+    private void startLemmaFind(EntitySite entitySite, EntityPage entityPage) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new StartLemmaFind(entitySite, entityPage, repositoryIndex, repositoryLemma));
     }
 }
