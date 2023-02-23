@@ -35,7 +35,7 @@ spring:
     url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
 ```
 
-**В проекте используются сгенерированные JAR библиотеки леммитизации из Maven репозитория https://gitlab.skillbox.ru/** .
+**В проекте используются сгенерированные JAR библиотеки лемматизации из Maven репозитория https://gitlab.skillbox.ru/** .
 
 Для их использования необходимо указать токен для доступа к данному Maven-репозиторию. Для указания токена найдите или создайте файл settings.xml.
 
