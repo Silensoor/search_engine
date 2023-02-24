@@ -58,4 +58,4 @@ spring:
 
 #### ШАГ 3.
 
-Запустите проект командой: `java -jar SearchEngine-1.0-SNAPSHOT.jar` (application.yaml должен быть в этой же папке)
+Запустите проект командой:  `java -jar SearchEngine-1.0-SNAPSHOT.jar` (application.yaml должен быть в этой же папке)
