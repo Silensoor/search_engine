@@ -7,8 +7,8 @@ spring:
     db_name: search_engine
     host: jdbc:mysql://localhost:3306
 
-    username: rootVit
-    password: rootVit
+    username: root
+    password: 198855
     url: ${spring.datasource.host}/${spring.datasource.db_name}?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=yes
   jpa:
     properties:
@@ -23,7 +23,11 @@ indexing-settings:
     - url: http://cimus.biz
       name: cimuz
     - url: http://playback.ru
-      name: shop
+      name: playback
+    - url: https://dimonvideo.ru
+      name: dimonvideo
+    - url: https://dombulgakova.ru
+      name: dombulgakova
   name: SearchBotFix/2.0
   referer: https://google.com
   timeout: 15000

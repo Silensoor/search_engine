@@ -29,18 +29,19 @@ public class ExecutorHtml extends RecursiveAction {
     private static Pattern patternUrl;
     private static NetworkService network;
     public static volatile boolean stop = false;
-    private static final Set<String> setAbsUrls = ConcurrentHashMap.newKeySet();
+    private final static Set<String> setAbsUrls = ConcurrentHashMap.newKeySet();
+    private final ExecutorService executorService;
 
-
-    public ExecutorHtml(String url, EntitySite entitySite, RepositoryPage repositoryPage, RepositorySite repositorySite,
-                        RepositoryLemma repositoryLemma, RepositoryIndex repositoryIndex) {
+    public ExecutorHtml(String url, EntitySite entitySite, RepositoryPage repositoryPage,
+                        RepositorySite repositorySite, RepositoryLemma repositoryLemma,
+                        RepositoryIndex repositoryIndex, ExecutorService executorService) {
         this.url = url.trim();
         this.entitySite = entitySite;
         this.repositoryPage = repositoryPage;
         this.repositorySite = repositorySite;
         this.repositoryIndex = repositoryIndex;
         this.repositoryLemma = repositoryLemma;
-
+        this.executorService = executorService;
 
     }
 
@@ -54,6 +55,7 @@ public class ExecutorHtml extends RecursiveAction {
         this.repositoryLemma = repositoryLemma;
         ExecutorHtml.network = network;
         patternUrl = Pattern.compile("(jpg)|(JPG)|(PNG)|(png)|(PDF)|(pdf)|(JPEG)|(jpeg)|(BMP)|(bmp)");
+        this.executorService = Executors.newFixedThreadPool(16);
 
     }
 
@@ -63,8 +65,10 @@ public class ExecutorHtml extends RecursiveAction {
         CopyOnWriteArrayList<ExecutorHtml> tasks = new CopyOnWriteArrayList<>();
 
         try {
+
             if (stop) {
                 stopExecute();
+                return;
             }
             Thread.sleep(150);
             Connection.Response response = network.getConnection(url);
@@ -76,20 +80,20 @@ public class ExecutorHtml extends RecursiveAction {
                 setAbsUrls.add(url);
                 return;
             }
+
+            Document document = response.parse();
+
             //TODO update Site time
             updateSiteTime(entitySite);
-            Document document = response.parse();
 
             //TODO Create and save page
             EntityPage entityPage = getEntityPage(document, url);
             repositoryPage.saveAndFlush(entityPage);
 
             //TODO Create and save lemmas
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            Future<?> submit = executorService.submit(new StartLemmaFind(entitySite, entityPage, repositoryIndex,
-                                                                         repositoryLemma));
+            Future<?> submit = executorService.submit(new StartLemmaFind(entitySite, entityPage,
+                                                                         repositoryIndex, repositoryLemma));
             submit.get();
-
 
             log.info("Добавлена запись " + url + " " + Thread.currentThread());
 
@@ -106,7 +110,7 @@ public class ExecutorHtml extends RecursiveAction {
                         && !setAbsUrls.contains(absUrl)) {
 
                     ExecutorHtml executorHtml = new ExecutorHtml(absUrl, entitySite, repositoryPage, repositorySite,
-                            repositoryLemma, repositoryIndex);
+                            repositoryLemma, repositoryIndex, executorService);
                     tasks.add(executorHtml);
                     executorHtml.fork();
                 }
@@ -140,22 +144,20 @@ public class ExecutorHtml extends RecursiveAction {
         repositorySite.saveAndFlush(entitySite);
     }
 
-    private void stopIndexing() {
-        entitySite.setStatus(Status.FAILED);
-        entitySite.setLast_error("Индексация остановлена пользователем");
-        repositorySite.saveAndFlush(entitySite);
-
-    }
 
     private boolean addAbsUrlToSet(String url) {
         return setAbsUrls.add(url);
 
     }
-        private void stopExecute() {
+
+    private void stopExecute() {
         StartLemmaFind.stop = true;
         StartExecutor.shutdown();
-        stopIndexing();
-        Thread.currentThread().interrupt();
     }
+
+    public static void clearSetAbsUrl() {
+        setAbsUrls.clear();
+    }
+
 
 }

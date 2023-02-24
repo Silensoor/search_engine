@@ -25,8 +25,9 @@ public class StartExecutor implements Runnable {
     private final RepositoryLemma repositoryLemma;
 
 
-    public StartExecutor(EntitySite entitySite, RepositoryPage repositoryPage, NetworkService network,
-                         RepositorySite repositorySite, RepositoryLemma repositoryLemma, RepositoryIndex repositoryIndex) {
+    public StartExecutor(EntitySite entitySite, RepositoryPage repositoryPage,
+                         NetworkService network, RepositorySite repositorySite,
+                         RepositoryLemma repositoryLemma, RepositoryIndex repositoryIndex) {
         this.entitySite = entitySite;
         this.repositoryPage = repositoryPage;
         this.network = network;
@@ -43,13 +44,11 @@ public class StartExecutor implements Runnable {
         try {
             long startTime = System.currentTimeMillis();
             ExecutorHtml executorHtml = new ExecutorHtml(entitySite, entitySite.getUrl() + "/", repositoryPage,
-                                                         network, repositorySite, repositoryIndex, repositoryLemma);
+                    network, repositorySite, repositoryIndex, repositoryLemma);
             fjp.invoke(executorHtml);
 
             if (!fjp.isShutdown()) {
-                entitySite.setStatus_time(new Date());
-                entitySite.setStatus(Status.INDEXED);
-                repositorySite.saveAndFlush(entitySite);
+                siteIndexed();
                 log.info("Индексация сайта " + entitySite.getName() + " завершена, за время: " +
                         (System.currentTimeMillis() - startTime));
             }
@@ -67,6 +66,12 @@ public class StartExecutor implements Runnable {
         if (fjp != null && !fjp.isShutdown()) {
             fjp.shutdownNow();
         }
+    }
+
+    private void siteIndexed() {
+        entitySite.setStatus_time(new Date());
+        entitySite.setStatus(Status.INDEXED);
+        repositorySite.saveAndFlush(entitySite);
     }
 }
 

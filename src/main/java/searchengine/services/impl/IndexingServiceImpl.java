@@ -56,6 +56,7 @@ public class IndexingServiceImpl implements IndexingService {
             repositoryLemma.deleteAll();
             repositoryPage.deleteAll();
             repositorySite.deleteAll();
+            ExecutorHtml.clearSetAbsUrl();
 
             for (SiteCfg site : sitesList.getSites()) {
                 EntitySite entitySite = getEntitySite(site, Status.INDEXING);
@@ -71,10 +72,22 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexResponse(true, "");
     }
 
+    @SneakyThrows
     @Override
     public IndexResponse stopIndexing() {
         ExecutorHtml.stop = true;
-        log.info("Индексация сайтов остановлена.");
+        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        service.schedule(() -> {
+            List<EntitySite> all = repositorySite.findAll();
+            for (EntitySite entitySite : all) {
+                if (entitySite.getStatus().equals(Status.INDEXING)) {
+                    entitySite.setStatus(Status.FAILED);
+                    entitySite.setLast_error("Индексация остановлена пользователем");
+                    repositorySite.saveAndFlush(entitySite);
+                }
+            }
+        }, 2000, TimeUnit.MILLISECONDS);
+
         return new IndexResponse(true);
     }
 

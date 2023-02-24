@@ -9,7 +9,6 @@ import searchengine.dto.Response.IndexResponse;
 import searchengine.dto.Response.SearchResponse;
 import searchengine.dto.statistics.SearchDto;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.model.repositories.RepositorySite;
 import searchengine.services.IndexingService;
 import searchengine.services.SearchService;
 import searchengine.services.StatisticsService;
@@ -24,7 +23,6 @@ public class ApiController {
 
     private final StatisticsService statisticsService;
     private final IndexingService indexingService;
-    private final RepositorySite repositorySite;
     private final SearchService searchService;
 
 

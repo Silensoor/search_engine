@@ -52,32 +52,34 @@ public class StartLemmaFind implements Runnable {
         HashMap<String, Integer> textLemmaList = morphology.getLemmaList(x);
         Set<String> allWords = new HashSet<>(textLemmaList.keySet());
         for (String lemma : allWords) {
-            synchronized (EntityLemma.class) {
-                Integer count = textLemmaList.get(lemma);
-                if (stop) {
-                    continue;
-                }
-                saveLemmaAndIndex(lemma, entityPage, count);
+
+            Integer count = textLemmaList.get(lemma);
+            if (stop) {
+                continue;
             }
+            saveLemmaAndIndex(lemma, entityPage, count);
+
         }
     }
 
     private void saveLemmaAndIndex(String lemma, EntityPage entityPage, Integer count) {
-        EntityLemma lemma1 = repositoryLemma.findByLemmaAndSite(lemma, entitySite);
-        if (lemma1 == null) {
-            EntityLemma entityLemma = new EntityLemma();
-            entityLemma.setSite(entitySite);
-            entityLemma.setLemma(lemma);
-            entityLemma.setFrequency(1);
-            lemma1 = repositoryLemma.saveAndFlush(entityLemma);
-        } else {
-            lemma1.setFrequency(lemma1.getFrequency() + 1);
-            repositoryLemma.saveAndFlush(lemma1);
+        synchronized (entitySite) {
+            EntityLemma lemma1 = repositoryLemma.findByLemmaAndSite(lemma, entitySite);
+            if (lemma1 == null) {
+                EntityLemma entityLemma = new EntityLemma();
+                entityLemma.setSite(entitySite);
+                entityLemma.setLemma(lemma);
+                entityLemma.setFrequency(1);
+                lemma1 = repositoryLemma.saveAndFlush(entityLemma);
+            } else {
+                lemma1.setFrequency(lemma1.getFrequency() + 1);
+                repositoryLemma.saveAndFlush(lemma1);
+            }
+            EntityIndex entityIndex = new EntityIndex();
+            entityIndex.setPage(entityPage);
+            entityIndex.setRank(count);
+            entityIndex.setLemma(lemma1);
+            repositoryIndex.saveAndFlush(entityIndex);
         }
-        EntityIndex entityIndex = new EntityIndex();
-        entityIndex.setPage(entityPage);
-        entityIndex.setRank(count);
-        entityIndex.setLemma(lemma1);
-        repositoryIndex.saveAndFlush(entityIndex);
     }
 }
