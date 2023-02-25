@@ -3,6 +3,8 @@ package searchengine.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -17,7 +19,7 @@ public class EntityLemma implements Comparable<EntityLemma> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)
     private Integer id;
-
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private EntitySite site;
     @Column(columnDefinition = "VARCHAR(255), UNIQUE KEY lemma_and_site(lemma,site_id)")

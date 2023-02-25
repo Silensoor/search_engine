@@ -52,9 +52,6 @@ public class IndexingServiceImpl implements IndexingService {
         }
         Thread thread = new Thread(() -> {
             log.info("Индексация запущена.");
-            repositoryIndex.deleteAll();
-            repositoryLemma.deleteAll();
-            repositoryPage.deleteAll();
             repositorySite.deleteAll();
             ExecutorHtml.clearSetAbsUrl();
 
@@ -86,7 +83,7 @@ public class IndexingServiceImpl implements IndexingService {
                     repositorySite.saveAndFlush(entitySite);
                 }
             }
-        }, 2000, TimeUnit.MILLISECONDS);
+        }, 3000, TimeUnit.MILLISECONDS);
 
         return new IndexResponse(true);
     }
