@@ -22,7 +22,7 @@ public class EntityPage {
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private EntitySite site;
 
-    @Column(columnDefinition = "TEXT NOT NULL, UNIQUE KEY uk_site_path(path(1000),site_id)")
+    @Column(columnDefinition = "TEXT NOT NULL, UNIQUE KEY uk_site_path(path(500),site_id)")
     private String path;
     @Column(nullable = false)
     private Integer code;
