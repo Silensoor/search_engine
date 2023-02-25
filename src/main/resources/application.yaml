@@ -1,0 +1,20 @@
+# example values
+indexing-settings:
+  sites:
+    - url: http://cimus.biz
+      name: Cimuz
+    - url: http://playback.ru
+      name: PlayBack
+    - url: https://ipfran.ru/
+      name: IpFan
+    - url: https://dombulgakova.ru
+      name: DomBulgakova
+
+  name: SearchBotFix/2.0
+  referer: https://google.com
+  timeout: 15000
+  contentType: text/html; charset=utf-8
+
+search-settings:
+  limit: 20
+  offset: 0

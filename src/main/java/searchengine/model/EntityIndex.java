@@ -11,7 +11,7 @@ import java.util.Objects;
 @Entity
 @Setter
 @Getter
-@Table(name = "`index`")
+@Table(name = "index")
 public class EntityIndex implements Comparable<EntityIndex> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +23,7 @@ public class EntityIndex implements Comparable<EntityIndex> {
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private EntityPage page;
 
-    @Column(name = "`rank`", nullable = false)
+    @Column(name = "rank", nullable = false)
     private float rank;
 
 

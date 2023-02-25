@@ -13,7 +13,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "lemma")
+@Table(name = "lemma",
+        uniqueConstraints=@UniqueConstraint(columnNames={"site_id", "lemma"}))
 public class EntityLemma implements Comparable<EntityLemma> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +23,7 @@ public class EntityLemma implements Comparable<EntityLemma> {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private EntitySite site;
-    @Column(columnDefinition = "VARCHAR(255), UNIQUE KEY lemma_and_site(lemma,site_id)")
+    @Column(columnDefinition = "VARCHAR(255)")
     private String lemma;
     @Column(nullable = false)
     private Integer frequency;

@@ -11,7 +11,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "page")
+@Table(name = "page",uniqueConstraints=@UniqueConstraint(columnNames={"site_id", "path"}))
 public class EntityPage {
 
     @Id
@@ -22,11 +22,11 @@ public class EntityPage {
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private EntitySite site;
 
-    @Column(columnDefinition = "TEXT NOT NULL, UNIQUE KEY uk_site_path(path(1000),site_id)")
+    @Column(columnDefinition = "TEXT NOT NULL")
     private String path;
     @Column(nullable = false)
     private Integer code;
-    @Column(columnDefinition = "MEDIUMTEXT CHARACTER SET  utf8mb4 COLLATE  utf8mb4_general_ci", nullable = false)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
 }

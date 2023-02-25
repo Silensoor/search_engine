@@ -94,7 +94,6 @@ public class IndexingServiceImpl implements IndexingService {
             if (url.isEmpty() || !pattern.matcher(url).find()) {
                 return new IndexResponse(false, "Вы ввели неверный url");
             }
-
             Connection.Response connection = network.getConnection(url);
             Document document = connection.parse();
             if (connection.statusCode() == HttpStatus.OK.value()) {
@@ -115,7 +114,6 @@ public class IndexingServiceImpl implements IndexingService {
                     }
                     log.info("Страница " + url + " проиндексирована.");
                     return new IndexResponse(true);
-
                 }
             }
         } catch (IOException e) {
@@ -124,7 +122,6 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexResponse(false, "Данная страница находится за пределами сайтов, " +
                 "указанных в конфигурационном файле");
     }
-
 
     private EntitySite getEntitySite(SiteCfg site, Status status) {
         EntitySite entitySite = new EntitySite();

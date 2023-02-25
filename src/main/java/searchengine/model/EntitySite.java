@@ -17,7 +17,6 @@ public class EntitySite   {
     private Integer id;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "enum('INDEXING', 'INDEXED', 'FAILED')")
     private Status status;
     @Temporal(TemporalType.TIMESTAMP)
     private Date status_time;
